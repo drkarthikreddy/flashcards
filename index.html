@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    
+
+    <title>Medical Flashcards Platform</title>
+
+
+    <!-- ======================================================
+    CSS
+    ======================================================= -->
+
+    <link
+        rel="stylesheet"
+        href="css/flashcards.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/viewer.css"
+    >
+
+
+    <!-- ======================================================
+    FONTS
+    ======================================================= -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+</head>
+<body>
+
+
+<!-- =========================================================
+APP SHELL
+========================================================= -->
+
+<div class="app-shell">
+
+
+    <!-- ======================================================
+    SIDEBAR
+    ======================================================= -->
+
+    <aside class="sidebar" id="sidebar">
+
+
+        <!-- ==================================================
+        HEADER
+        =================================================== -->
+
+        <div class="sidebar-header">
+
+            <div class="logo">
+                Medical Flashcards
+            </div>
+
+            <div class="logo-sub">
+                APKG based NEET PG / INICET revision platform
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+        IMPORT
+        =================================================== -->
+
+        <div class="import-section">
+
+            <label
+                class="import-label"
+                for="apkg-input"
+            >
+                Import APKG Deck
+            </label>
+
+            <input
+                type="file"
+                id="apkg-input"
+                accept=".apkg"
+            >
+
+
+            <!-- ==============================================
+            PROGRESS
+            =============================================== -->
+
+            <div class="progress-container">
+
+                <div
+                    class="progress-bar"
+                    id="import-progress"
+                ></div>
+
+            </div>
+
+            <div
+                class="import-status"
+                id="import-status"
+            >
+                Waiting for import...
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+        SEARCH
+        =================================================== -->
+
+        <div class="search-section">
+
+            <input
+                type="text"
+                id="search-input"
+                class="search-input"
+                placeholder="Search flashcards..."
+            >
+
+        </div>
+
+
+        <!-- ==================================================
+        SUBJECTS
+        =================================================== -->
+
+        <div class="subjects-section">
+
+            <div class="section-title">
+                SUBJECTS
+            </div>
+
+            <div
+                class="subjects-list"
+                id="subjects"
+            >
+
+            </div>
+
+
+            <!-- ==============================================
+            CHAPTERS
+            =============================================== -->
+
+            <div
+                class="section-title"
+                style="margin-top:30px"
+            >
+                CHAPTERS
+            </div>
+
+            <div
+                class="chapters-list"
+                id="chapters"
+            >
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ======================================================
+    MAIN CONTENT
+    ======================================================= -->
+
+    <main class="main-content">
+
+
+        <!-- ==================================================
+        TOPBAR
+        =================================================== -->
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <button
+                    class="action-btn"
+                    id="sidebar-toggle"
+                >
+                    ☰
+                </button>
+
+                <div class="topbar-title">
+                    Flashcard Viewer
+                </div>
+
+            </div>
+
+
+            <div class="topbar-right">
+
+                <button
+                    class="action-btn"
+                    id="revision-mode-btn"
+                >
+                    Revision
+                </button>
+
+                <button
+                    class="action-btn"
+                    id="weak-mode-btn"
+                >
+                    Weak Cards
+                </button>
+
+                <button
+                    class="action-btn"
+                    id="bookmark-mode-btn"
+                >
+                    Bookmarks
+                </button>
+
+                <button
+                    class="action-btn"
+                    id="exam-mode-btn"
+                >
+                    Exam Mode
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- ==================================================
+        VIEWER
+        =================================================== -->
+
+        <div class="viewer-wrapper">
+
+
+            <!-- ==============================================
+            EMPTY STATE
+            =============================================== -->
+
+            <div
+                class="empty-state"
+                id="empty-state"
+            >
+
+                <div class="empty-title">
+                    Import an APKG Deck
+                </div>
+
+                <div class="empty-sub">
+                    Upload your Anki APKG file to begin studying.
+                </div>
+
+            </div>
+
+
+            <!-- ==============================================
+            FLASHCARD VIEWER ROOT
+            =============================================== -->
+
+            <div
+                id="flashcard-app"
+                class="viewer-root hidden"
+            ></div>
+
+        </div>
+
+
+        <!-- ==================================================
+        BOTTOM BAR
+        =================================================== -->
+
+        <footer class="bottom-bar">
+
+            <button
+                class="bottom-btn"
+                id="show-all-btn"
+            >
+                All Cards
+            </button>
+
+            <button
+                class="bottom-btn"
+                id="random-card-btn"
+            >
+                Random
+            </button>
+
+            <button
+                class="bottom-btn"
+                id="fullscreen-btn"
+            >
+                Fullscreen
+            </button>
+
+            <button
+                class="bottom-btn"
+                id="stats-btn"
+            >
+                Statistics
+            </button>
+
+            <button
+                class="bottom-btn"
+                id="reset-btn"
+            >
+                Reset
+            </button>
+
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+STATS MODAL
+========================================================= -->
+
+<div
+    class="viewer-overlay hidden"
+    id="stats-overlay"
+>
+
+    <div class="viewer-overlay-card">
+
+        <div class="viewer-overlay-title">
+            Study Statistics
+        </div>
+
+        <div
+            class="viewer-overlay-sub"
+            id="stats-content"
+        >
+
+        </div>
+
+        <button
+            class="action-btn"
+            id="close-stats-btn"
+            style="margin-top:24px"
+        >
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+LIBRARIES
+========================================================= -->
+
+<script src="js/libs/jszip.min.js"></script>
+
+<script src="js/libs/sql-wasm.js"></script>
+
+<script src="js/libs/fuse.min.js"></script>
+
+<script src="js/libs/dompurify.min.js"></script>
+
+
+<!-- =========================================================
+ENGINES
+========================================================= -->
+
+<script src="js/engines/apkg-engine.js"></script>
+
+<script src="js/engines/search-engine.js"></script>
+
+<script src="js/engines/bookmark-engine.js"></script>
+
+<script src="js/engines/revision-engine.js"></script>
+
+<script src="js/engines/stats-engine.js"></script>
+
+<script src="js/engines/flashcard-engine.js"></script>
+
+
+<!-- =========================================================
+APP
+========================================================= -->
+
+<script src="js/app.js"></script>
+
+
+<!-- =========================================================
+UI SCRIPT
+========================================================= -->
+
+<script>
+
+    /*
+    ========================================================
+    SIDEBAR TOGGLE
+    ========================================================
+    */
+
+    const sidebarToggle =
+        document.getElementById(
+            'sidebar-toggle'
+        );
+
+    const sidebar =
+        document.getElementById(
+            'sidebar'
+        );
+
+    sidebarToggle?.addEventListener(
+
+        'click',
+
+        () => {
+
+            sidebar.classList.toggle(
+                'active'
+            );
+
+        }
+
+    );
+
+
+    /*
+    ========================================================
+    VIEWER VISIBILITY
+    ========================================================
+    */
+
+    const importInput =
+        document.getElementById(
+            'apkg-input'
+        );
+
+    const emptyState =
+        document.getElementById(
+            'empty-state'
+        );
+
+    const viewerRoot =
+        document.getElementById(
+            'flashcard-app'
+        );
+
+    importInput?.addEventListener(
+
+        'change',
+
+        () => {
+
+            emptyState.classList.add(
+                'hidden'
+            );
+
+            viewerRoot.classList.remove(
+                'hidden'
+            );
+
+        }
+
+    );
+
+
+    /*
+    ========================================================
+    BUTTONS
+    ========================================================
+    */
+
+    document.getElementById(
+        'revision-mode-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            window.flashcardApp
+                ?.startRevisionMode();
+
+        }
+
+    );
+
+
+    document.getElementById(
+        'weak-mode-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            window.flashcardApp
+                ?.startWeakMode();
+
+        }
+
+    );
+
+
+    document.getElementById(
+        'bookmark-mode-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            window.flashcardApp
+                ?.startBookmarkMode();
+
+        }
+
+    );
+
+
+    document.getElementById(
+        'exam-mode-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            const minutes = prompt(
+                'Enter exam duration in minutes',
+                '60'
+            );
+
+            if (!minutes) return;
+
+            window.flashcardApp
+                ?.startExamMode(
+                    parseInt(minutes)
+                );
+
+        }
+
+    );
+
+
+    document.getElementById(
+        'show-all-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            location.reload();
+
+        }
+
+    );
+
+
+    document.getElementById(
+        'fullscreen-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            document.documentElement
+                .requestFullscreen();
+
+        }
+
+    );
+
+
+    document.getElementById(
+        'reset-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            const confirmReset = confirm(
+                'Reset application data?'
+            );
+
+            if (!confirmReset) return;
+
+            localStorage.clear();
+
+            location.reload();
+
+        }
+
+    );
+
+
+    /*
+    ========================================================
+    STATS
+    ========================================================
+    */
+
+    const statsOverlay =
+        document.getElementById(
+            'stats-overlay'
+        );
+
+    const statsContent =
+        document.getElementById(
+            'stats-content'
+        );
+
+
+    document.getElementById(
+        'stats-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            if (!window.flashcardApp) {
+                return;
+            }
+
+            const stats =
+                window.flashcardApp
+                    .engines
+                    .stats
+                    .stats;
+
+            statsContent.innerHTML = `
+
+                <div style="text-align:left;line-height:2">
+
+                    <b>Total Cards Viewed:</b>
+                    ${stats.global.totalCardsViewed}
+
+                    <br>
+
+                    <b>Total Flips:</b>
+                    ${stats.global.totalCardsFlipped}
+
+                    <br>
+
+                    <b>Bookmarks:</b>
+                    ${stats.global.totalBookmarks}
+
+                    <br>
+
+                    <b>Weak Cards:</b>
+                    ${stats.global.totalWeakCards}
+
+                    <br>
+
+                    <b>Sessions:</b>
+                    ${stats.global.totalSessions}
+
+                    <br>
+
+                    <b>Current Streak:</b>
+                    ${stats.global.currentStreak}
+
+                    <br>
+
+                    <b>Exam Readiness:</b>
+                    ${stats.global.examReadiness}%
+
+                    <br>
+
+                    <b>Productivity:</b>
+                    ${stats.global.productivityScore}%
+
+                </div>
+
+            `;
+
+            statsOverlay.classList.remove(
+                'hidden'
+            );
+
+        }
+
+    );
+
+
+    document.getElementById(
+        'close-stats-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            statsOverlay.classList.add(
+                'hidden'
+            );
+
+        }
+
+    );
+
+</script>
+
+</body>
+</html>

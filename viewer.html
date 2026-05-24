@@ -1,0 +1,1097 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Flashcard Viewer</title><link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Quicksand',sans-serif;
+    background:#f9fafb;
+    color:#111827;
+    min-height:100vh;
+    overflow-x:hidden;
+}
+
+.app{
+    display:grid;
+    grid-template-columns:320px 1fr;
+    min-height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    background:white;
+    border-right:1px solid #e5e7eb;
+    overflow-y:auto;
+    padding:25px;
+}
+
+.logo{
+    font-size:1.7rem;
+    font-weight:700;
+    margin-bottom:30px;
+}
+
+.search-box{
+    margin-bottom:25px;
+}
+
+.search-box input{
+    width:100%;
+    padding:14px 16px;
+    border:none;
+    background:#f3f4f6;
+    border-radius:14px;
+    font-size:1rem;
+}
+
+.subjects-list{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.subject-card{
+    background:#f9fafb;
+    border-radius:18px;
+    padding:18px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.subject-card:hover{
+    transform:translateY(-2px);
+}
+
+.subject-card.active{
+    background:#facc15;
+}
+
+.subject-card h3{
+    margin-bottom:10px;
+}
+
+.subject-card p{
+    color:#6b7280;
+    font-size:0.95rem;
+}
+
+/* MAIN */
+
+.main{
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+}
+
+.topbar{
+    background:white;
+    border-bottom:1px solid #e5e7eb;
+    padding:18px 30px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.topbar-left{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+}
+
+.topbar-right{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+}
+
+.badge{
+    background:#fef3c7;
+    color:#92400e;
+    padding:10px 14px;
+    border-radius:999px;
+    font-size:0.92rem;
+    font-weight:700;
+}
+
+.btn{
+    background:#111827;
+    color:white;
+    border:none;
+    border-radius:14px;
+    padding:12px 18px;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn.secondary{
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+}
+
+.progress-wrapper{
+    width:220px;
+    height:14px;
+    background:#f3f4f6;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    width:0%;
+    height:100%;
+    background:#facc15;
+}
+
+/* CONTENT */
+
+.content{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:40px 25px;
+}
+
+.card-container{
+    width:min(850px,100%);
+    perspective:1500px;
+}
+
+.flashcard{
+    width:100%;
+    min-height:500px;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform 0.7s;
+    cursor:pointer;
+}
+
+.flashcard.flipped{
+    transform:rotateY(180deg);
+}
+
+.card-face{
+    position:absolute;
+    width:100%;
+    min-height:500px;
+    backface-visibility:hidden;
+    border-radius:28px;
+    background:white;
+    box-shadow:0 20px 50px rgba(0,0,0,0.08);
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+}
+
+.card-front{
+    justify-content:center;
+}
+
+.card-back{
+    transform:rotateY(180deg);
+}
+
+.card-label{
+    font-size:0.9rem;
+    color:#6b7280;
+    margin-bottom:16px;
+    font-weight:700;
+}
+
+.question{
+    font-size:2rem;
+    font-weight:700;
+    line-height:1.7;
+}
+
+.answer{
+    font-size:1.25rem;
+    line-height:2;
+    white-space:pre-wrap;
+}
+
+.tags{
+    margin-top:auto;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.tag{
+    background:#f3f4f6;
+    padding:8px 12px;
+    border-radius:999px;
+    font-size:0.85rem;
+}
+
+.controls{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    margin-top:30px;
+    flex-wrap:wrap;
+}
+
+.control-btn{
+    background:white;
+    border:none;
+    border-radius:18px;
+    padding:16px 22px;
+    cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    font-weight:700;
+}
+
+.control-btn.active{
+    background:#facc15;
+}
+
+.stats-panel{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:18px;
+    padding:30px;
+}
+
+.stat-card{
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+}
+
+.stat-card h3{
+    font-size:0.95rem;
+    color:#6b7280;
+    margin-bottom:12px;
+}
+
+.stat-card p{
+    font-size:1.8rem;
+    font-weight:700;
+}
+
+.empty-state{
+    text-align:center;
+}
+
+.empty-state h2{
+    margin-bottom:15px;
+}
+
+.empty-state p{
+    color:#6b7280;
+}
+
+@media(max-width:1000px){
+
+    .app{
+        grid-template-columns:1fr;
+    }
+
+    .sidebar{
+        display:none;
+    }
+
+}
+
+@media(max-width:768px){
+
+    .question{
+        font-size:1.5rem;
+    }
+
+    .answer{
+        font-size:1.05rem;
+    }
+
+    .card-face{
+        padding:28px;
+        min-height:430px;
+    }
+
+}
+
+</style></head>
+<body><div class="app"><!-- SIDEBAR -->
+<aside class="sidebar">
+
+    <div class="logo">Flashcards</div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search flashcards...">
+    </div>
+
+    <div class="subjects-list" id="subjectsList"></div>
+
+</aside>
+
+
+<!-- MAIN -->
+<main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <div class="badge" id="subjectBadge">
+                General
+            </div>
+
+            <div class="badge" id="chapterBadge">
+                Chapter
+            </div>
+
+        </div>
+
+        <div class="topbar-right">
+
+            <div class="progress-wrapper">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <button class="btn secondary" id="shuffleBtn">
+                Shuffle
+            </button>
+
+            <button class="btn secondary" id="weakModeBtn">
+                Weak Cards
+            </button>
+
+            <button class="btn" id="fullscreenBtn">
+                Fullscreen
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- CONTENT -->
+    <section class="content">
+
+        <div class="card-container">
+
+            <div class="flashcard" id="flashcard">
+
+                <!-- FRONT -->
+                <div class="card-face card-front">
+
+                    <div class="card-label">
+                        QUESTION
+                    </div>
+
+                    <div class="question" id="questionText">
+                        Loading...
+                    </div>
+
+                </div>
+
+                <!-- BACK -->
+                <div class="card-face card-back">
+
+                    <div class="card-label">
+                        ANSWER
+                    </div>
+
+                    <div class="answer" id="answerText">
+                        Loading...
+                    </div>
+
+                    <div class="tags" id="tagsContainer"></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONTROLS -->
+            <div class="controls">
+
+                <button class="control-btn" id="prevBtn">
+                    Previous
+                </button>
+
+                <button class="control-btn" id="flipBtn">
+                    Flip
+                </button>
+
+                <button class="control-btn" id="nextBtn">
+                    Next
+                </button>
+
+                <button class="control-btn" id="bookmarkBtn">
+                    Bookmark
+                </button>
+
+                <button class="control-btn" id="weakBtn">
+                    Mark Weak
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- STATS -->
+    <section class="stats-panel">
+
+        <div class="stat-card">
+            <h3>Total Cards</h3>
+            <p id="totalCards">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Current Card</h3>
+            <p id="currentCard">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Bookmarks</h3>
+            <p id="bookmarksCount">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Weak Cards</h3>
+            <p id="weakCardsCount">0</p>
+        </div>
+
+    </section>
+
+</main>
+
+</div><script>
+
+/*
+========================================================
+GLOBAL VARIABLES
+========================================================
+*/
+
+let deck = null;
+let allCards = [];
+let filteredCards = [];
+let currentIndex = 0;
+let currentSubject = null;
+
+let bookmarkedCards = [];
+let weakCards = [];
+
+let shuffleMode = false;
+let weakMode = false;
+
+
+/*
+========================================================
+ELEMENTS
+========================================================
+*/
+
+const flashcard = document.getElementById('flashcard');
+
+const questionText = document.getElementById('questionText');
+const answerText = document.getElementById('answerText');
+
+const tagsContainer = document.getElementById('tagsContainer');
+
+const progressBar = document.getElementById('progressBar');
+
+const subjectBadge = document.getElementById('subjectBadge');
+const chapterBadge = document.getElementById('chapterBadge');
+
+const subjectsList = document.getElementById('subjectsList');
+
+const searchInput = document.getElementById('searchInput');
+
+const totalCards = document.getElementById('totalCards');
+const currentCard = document.getElementById('currentCard');
+const bookmarksCount = document.getElementById('bookmarksCount');
+const weakCardsCount = document.getElementById('weakCardsCount');
+
+
+/*
+========================================================
+LOAD DATA
+========================================================
+*/
+
+function initializeViewer(){
+
+    const stored = localStorage.getItem('activeImportedDeck');
+
+    if(!stored){
+
+        questionText.innerHTML = `
+            <div class="empty-state">
+                <h2>No Imported Deck</h2>
+                <p>Import an APKG deck first.</p>
+            </div>
+        `;
+
+        return;
+
+    }
+
+    deck = JSON.parse(stored);
+
+    allCards = deck.cards || [];
+
+    filteredCards = [...allCards];
+
+    renderSubjects();
+
+    updateStats();
+
+    renderCard();
+
+}
+
+
+/*
+========================================================
+RENDER SUBJECTS
+========================================================
+*/
+
+function renderSubjects(){
+
+    subjectsList.innerHTML = '';
+
+    Object.entries(deck.subjects).forEach(([subject,chapters])=>{
+
+        const card = document.createElement('div');
+
+        card.className = 'subject-card';
+
+        const total = Object.values(chapters)
+            .reduce((sum,arr)=>sum + arr.length,0);
+
+        card.innerHTML = `
+            <h3>${subject}</h3>
+            <p>
+                ${Object.keys(chapters).length} chapters<br>
+                ${total} cards
+            </p>
+        `;
+
+        card.addEventListener('click',()=>{
+            selectSubject(subject,card);
+        });
+
+        subjectsList.appendChild(card);
+
+    });
+
+}
+
+
+/*
+========================================================
+SELECT SUBJECT
+========================================================
+*/
+
+function selectSubject(subject,element){
+
+    currentSubject = subject;
+
+    document.querySelectorAll('.subject-card')
+        .forEach(card=>card.classList.remove('active'));
+
+    element.classList.add('active');
+
+    filteredCards = allCards.filter(card=>{
+        return card.subject === subject;
+    });
+
+    currentIndex = 0;
+
+    renderCard();
+    updateStats();
+
+}
+
+
+/*
+========================================================
+RENDER CARD
+========================================================
+*/
+
+function renderCard(){
+
+    if(!filteredCards.length){
+
+        questionText.innerHTML = 'No flashcards found';
+        answerText.innerHTML = 'No flashcards found';
+
+        return;
+
+    }
+
+    const card = filteredCards[currentIndex];
+
+    if(!card) return;
+
+    questionText.innerHTML = card.question;
+    answerText.innerHTML = card.answer;
+
+    subjectBadge.innerText = card.subject || 'General';
+    chapterBadge.innerText = card.chapter || 'General';
+
+    tagsContainer.innerHTML = '';
+
+    (card.tags || []).forEach(tag=>{
+
+        const tagElement = document.createElement('div');
+
+        tagElement.className = 'tag';
+        tagElement.innerText = tag;
+
+        tagsContainer.appendChild(tagElement);
+
+    });
+
+    updateProgress();
+
+    flashcard.classList.remove('flipped');
+
+}
+
+
+/*
+========================================================
+FLIP CARD
+========================================================
+*/
+
+function flipCard(){
+    flashcard.classList.toggle('flipped');
+}
+
+flashcard.addEventListener('click',flipCard);
+
+document.getElementById('flipBtn')
+    .addEventListener('click',flipCard);
+
+
+/*
+========================================================
+NEXT CARD
+========================================================
+*/
+
+function nextCard(){
+
+    if(!filteredCards.length) return;
+
+    currentIndex++;
+
+    if(currentIndex >= filteredCards.length){
+        currentIndex = 0;
+    }
+
+    renderCard();
+    updateStats();
+
+}
+
+
+/*
+========================================================
+PREVIOUS CARD
+========================================================
+*/
+
+function previousCard(){
+
+    if(!filteredCards.length) return;
+
+    currentIndex--;
+
+    if(currentIndex < 0){
+        currentIndex = filteredCards.length - 1;
+    }
+
+    renderCard();
+    updateStats();
+
+}
+
+
+document.getElementById('nextBtn')
+    .addEventListener('click',nextCard);
+
+
+document.getElementById('prevBtn')
+    .addEventListener('click',previousCard);
+
+
+/*
+========================================================
+BOOKMARK
+========================================================
+*/
+
+function toggleBookmark(){
+
+    const card = filteredCards[currentIndex];
+
+    const exists = bookmarkedCards.includes(card.id);
+
+    if(exists){
+
+        bookmarkedCards = bookmarkedCards.filter(
+            id=>id !== card.id
+        );
+
+    }
+    else{
+
+        bookmarkedCards.push(card.id);
+
+    }
+
+    localStorage.setItem(
+        'bookmarkedCards',
+        JSON.stringify(bookmarkedCards)
+    );
+
+    updateStats();
+
+}
+
+
+document.getElementById('bookmarkBtn')
+    .addEventListener('click',toggleBookmark);
+
+
+/*
+========================================================
+WEAK CARD
+========================================================
+*/
+
+function toggleWeakCard(){
+
+    const card = filteredCards[currentIndex];
+
+    const exists = weakCards.includes(card.id);
+
+    if(exists){
+
+        weakCards = weakCards.filter(
+            id=>id !== card.id
+        );
+
+    }
+    else{
+
+        weakCards.push(card.id);
+
+    }
+
+    localStorage.setItem(
+        'weakCards',
+        JSON.stringify(weakCards)
+    );
+
+    updateStats();
+
+}
+
+
+document.getElementById('weakBtn')
+    .addEventListener('click',toggleWeakCard);
+
+
+/*
+========================================================
+PROGRESS
+========================================================
+*/
+
+function updateProgress(){
+
+    if(!filteredCards.length) return;
+
+    const progress = (
+        (currentIndex + 1) / filteredCards.length
+    ) * 100;
+
+    progressBar.style.width = progress + '%';
+
+}
+
+
+/*
+========================================================
+STATS
+========================================================
+*/
+
+function updateStats(){
+
+    totalCards.innerText = filteredCards.length;
+
+    currentCard.innerText = currentIndex + 1;
+
+    bookmarksCount.innerText = bookmarkedCards.length;
+
+    weakCardsCount.innerText = weakCards.length;
+
+}
+
+
+/*
+========================================================
+SEARCH
+========================================================
+*/
+
+searchInput.addEventListener('input',event=>{
+
+    const value = event.target.value
+        .toLowerCase()
+        .trim();
+
+    if(!value){
+
+        filteredCards = currentSubject
+            ? allCards.filter(card=>card.subject===currentSubject)
+            : [...allCards];
+
+        currentIndex = 0;
+
+        renderCard();
+
+        return;
+
+    }
+
+    filteredCards = allCards.filter(card=>{
+
+        return (
+            card.question.toLowerCase().includes(value) ||
+            card.answer.toLowerCase().includes(value)
+        );
+
+    });
+
+    currentIndex = 0;
+
+    renderCard();
+    updateStats();
+
+});
+
+
+/*
+========================================================
+SHUFFLE MODE
+========================================================
+*/
+
+function shuffleCards(array){
+
+    for(let i = array.length - 1; i > 0; i--){
+
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [array[i],array[j]] = [array[j],array[i]];
+
+    }
+
+}
+
+
+document.getElementById('shuffleBtn')
+    .addEventListener('click',()=>{
+
+        shuffleMode = !shuffleMode;
+
+        if(shuffleMode){
+            shuffleCards(filteredCards);
+        }
+
+        currentIndex = 0;
+
+        renderCard();
+
+    });
+
+
+/*
+========================================================
+WEAK MODE
+========================================================
+*/
+
+
+document.getElementById('weakModeBtn')
+    .addEventListener('click',()=>{
+
+        weakMode = !weakMode;
+
+        if(weakMode){
+
+            filteredCards = allCards.filter(card=>{
+                return weakCards.includes(card.id);
+            });
+
+        }
+        else{
+
+            filteredCards = [...allCards];
+
+        }
+
+        currentIndex = 0;
+
+        renderCard();
+        updateStats();
+
+    });
+
+
+/*
+========================================================
+FULLSCREEN
+========================================================
+*/
+
+
+document.getElementById('fullscreenBtn')
+    .addEventListener('click',()=>{
+
+        if(!document.fullscreenElement){
+            document.documentElement.requestFullscreen();
+        }
+        else{
+            document.exitFullscreen();
+        }
+
+    });
+
+
+/*
+========================================================
+KEYBOARD SHORTCUTS
+========================================================
+*/
+
+window.addEventListener('keydown',event=>{
+
+    switch(event.key){
+
+        case 'ArrowRight':
+            nextCard();
+            break;
+
+        case 'ArrowLeft':
+            previousCard();
+            break;
+
+        case ' ':
+            event.preventDefault();
+            flipCard();
+            break;
+
+        case 'b':
+            toggleBookmark();
+            break;
+
+        case 'w':
+            toggleWeakCard();
+            break;
+
+    }
+
+});
+
+
+/*
+========================================================
+SWIPE SUPPORT
+========================================================
+*/
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+flashcard.addEventListener('touchstart',event=>{
+    touchStartX = event.changedTouches[0].screenX;
+});
+
+flashcard.addEventListener('touchend',event=>{
+
+    touchEndX = event.changedTouches[0].screenX;
+
+    handleSwipe();
+
+});
+
+function handleSwipe(){
+
+    const difference = touchEndX - touchStartX;
+
+    if(Math.abs(difference) < 60) return;
+
+    if(difference > 0){
+        previousCard();
+    }
+    else{
+        nextCard();
+    }
+
+}
+
+
+/*
+========================================================
+LOAD SAVED DATA
+========================================================
+*/
+
+function loadSavedState(){
+
+    bookmarkedCards = JSON.parse(
+        localStorage.getItem('bookmarkedCards') || '[]'
+    );
+
+    weakCards = JSON.parse(
+        localStorage.getItem('weakCards') || '[]'
+    );
+
+}
+
+
+/*
+========================================================
+START APP
+========================================================
+*/
+
+loadSavedState();
+initializeViewer();
+
+</script></body>
+</html>

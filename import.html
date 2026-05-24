@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>APKG Importer</title>
+
+
+    <!-- ======================================================
+    CSS
+    ======================================================= -->
+
+    <link
+        rel="stylesheet"
+        href="../css/importer.css"
+    >
+
+
+    <!-- ======================================================
+    FONTS
+    ======================================================= -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+</head>
+<body>
+
+
+<!-- =========================================================
+IMPORTER PAGE
+========================================================= -->
+
+<div class="importer-page">
+
+
+    <!-- ======================================================
+    IMPORTER CARD
+    ======================================================= -->
+
+    <div class="importer-card fade-up">
+
+
+        <!-- ==================================================
+        HEADER
+        =================================================== -->
+
+        <div class="importer-header">
+
+            <div class="importer-title">
+                Import Your APKG Flashcards
+            </div>
+
+            <div class="importer-subtitle">
+                Upload Anki APKG decks and organize them into
+                a NEET PG / INICET flashcard learning system.
+                Supports massive decks, media extraction,
+                offline learning, revision engine integration,
+                bookmarks, weak cards, and advanced search.
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+        UPLOAD SECTION
+        =================================================== -->
+
+        <div class="upload-section">
+
+            <div
+                class="upload-box"
+                id="upload-box"
+            >
+
+                <div class="upload-icon">
+                    ⬆
+                </div>
+
+                <div class="upload-title">
+                    Drag & Drop APKG File
+                </div>
+
+                <div class="upload-sub">
+                    Import Anki flashcards locally in your browser.
+                    No upload to server. Everything works offline.
+                </div>
+
+
+                <!-- ==============================================
+                FILE INPUT
+                =============================================== -->
+
+                <input
+                    type="file"
+                    id="import-apkg"
+                    accept=".apkg"
+                >
+
+                <button
+                    class="upload-btn"
+                    id="select-file-btn"
+                >
+                    Select APKG File
+                </button>
+
+
+                <!-- ==============================================
+                SUPPORTED FEATURES
+                =============================================== -->
+
+                <div class="supported-section">
+
+                    <div class="support-chip">
+                        APKG
+                    </div>
+
+                    <div class="support-chip">
+                        Images
+                    </div>
+
+                    <div class="support-chip">
+                        Audio
+                    </div>
+
+                    <div class="support-chip">
+                        Offline Mode
+                    </div>
+
+                    <div class="support-chip">
+                        Revision Engine
+                    </div>
+
+                    <div class="support-chip">
+                        Search Engine
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+        PROGRESS SECTION
+        =================================================== -->
+
+        <div class="progress-section">
+
+            <div class="progress-card">
+
+                <div class="progress-header">
+
+                    <div class="progress-title">
+                        Import Progress
+                    </div>
+
+                    <div
+                        class="progress-percent"
+                        id="progress-percent"
+                    >
+                        0%
+                    </div>
+
+                </div>
+
+
+                <!-- ==============================================
+                PROGRESS BAR
+                =============================================== -->
+
+                <div class="progress-wrapper">
+
+                    <div
+                        class="progress-bar"
+                        id="progress-bar"
+                    ></div>
+
+                </div>
+
+
+                <!-- ==============================================
+                STATUS
+                =============================================== -->
+
+                <div
+                    class="progress-status"
+                    id="progress-status"
+                >
+                    Waiting for file...
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+        RESULTS SECTION
+        =================================================== -->
+
+        <div
+            class="results-section hidden"
+            id="results-section"
+        >
+
+            <div class="results-grid">
+
+
+                <!-- ==============================================
+                TOTAL CARDS
+                =============================================== -->
+
+                <div class="result-card">
+
+                    <div
+                        class="result-value"
+                        id="cards-count"
+                    >
+                        0
+                    </div>
+
+                    <div class="result-label">
+                        Total Flashcards
+                    </div>
+
+                </div>
+
+
+                <!-- ==============================================
+                TOTAL SUBJECTS
+                =============================================== -->
+
+                <div class="result-card">
+
+                    <div
+                        class="result-value"
+                        id="subjects-count"
+                    >
+                        0
+                    </div>
+
+                    <div class="result-label">
+                        Subjects
+                    </div>
+
+                </div>
+
+
+                <!-- ==============================================
+                TOTAL CHAPTERS
+                =============================================== -->
+
+                <div class="result-card">
+
+                    <div
+                        class="result-value"
+                        id="chapters-count"
+                    >
+                        0
+                    </div>
+
+                    <div class="result-label">
+                        Chapters
+                    </div>
+
+                </div>
+
+
+                <!-- ==============================================
+                MEDIA FILES
+                =============================================== -->
+
+                <div class="result-card">
+
+                    <div
+                        class="result-value"
+                        id="media-count"
+                    >
+                        0
+                    </div>
+
+                    <div class="result-label">
+                        Media Files
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+        ACTIONS
+        =================================================== -->
+
+        <div class="import-actions hidden" id="actions">
+
+            <button
+                class="action-btn primary"
+                id="open-viewer-btn"
+            >
+                Open Viewer
+            </button>
+
+            <button
+                class="action-btn secondary"
+                id="download-json-btn"
+            >
+                Export JSON
+            </button>
+
+            <button
+                class="action-btn success"
+                id="save-local-btn"
+            >
+                Save Locally
+            </button>
+
+            <button
+                class="action-btn danger"
+                id="clear-btn"
+            >
+                Clear Import
+            </button>
+
+        </div>
+
+
+        <!-- ==================================================
+        SUCCESS BOX
+        =================================================== -->
+
+        <div
+            class="success-box hidden"
+            id="success-box"
+        >
+
+            <div class="success-title">
+                Import Successful
+            </div>
+
+            <div class="success-message">
+                APKG deck imported successfully.
+                You can now open the flashcard viewer.
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+        ERROR BOX
+        =================================================== -->
+
+        <div
+            class="error-box hidden"
+            id="error-box"
+        >
+
+            <div class="error-title">
+                Import Failed
+            </div>
+
+            <div
+                class="error-message"
+                id="error-message"
+            >
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+LIBRARIES
+========================================================= -->
+
+<script src="../js/libs/jszip.min.js"></script>
+
+<script src="../js/libs/sql-wasm.js"></script>
+
+<script src="../js/libs/dompurify.min.js"></script>
+
+
+<!-- =========================================================
+ENGINE
+========================================================= -->
+
+<script src="../js/engines/apkg-engine.js"></script>
+
+
+<!-- =========================================================
+IMPORT SCRIPT
+========================================================= -->
+
+<script>
+
+    /*
+    ========================================================
+    ELEMENTS
+    ========================================================
+    */
+
+    const uploadBox =
+        document.getElementById(
+            'upload-box'
+        );
+
+    const fileInput =
+        document.getElementById(
+            'import-apkg'
+        );
+
+    const selectButton =
+        document.getElementById(
+            'select-file-btn'
+        );
+
+    const progressBar =
+        document.getElementById(
+            'progress-bar'
+        );
+
+    const progressPercent =
+        document.getElementById(
+            'progress-percent'
+        );
+
+    const progressStatus =
+        document.getElementById(
+            'progress-status'
+        );
+
+    const resultsSection =
+        document.getElementById(
+            'results-section'
+        );
+
+    const successBox =
+        document.getElementById(
+            'success-box'
+        );
+
+    const errorBox =
+        document.getElementById(
+            'error-box'
+        );
+
+    const errorMessage =
+        document.getElementById(
+            'error-message'
+        );
+
+    const actions =
+        document.getElementById(
+            'actions'
+        );
+
+
+    /*
+    ========================================================
+    ENGINE
+    ========================================================
+    */
+
+    const engine =
+        new APKGEngine({
+
+            progressCallback: progress => {
+
+                updateProgress(
+                    progress.percent,
+                    progress.message
+                );
+
+            }
+
+        });
+
+
+    /*
+    ========================================================
+    FILE SELECT
+    ========================================================
+    */
+
+    selectButton.addEventListener(
+
+        'click',
+
+        () => {
+
+            fileInput.click();
+
+        }
+
+    );
+
+
+    fileInput.addEventListener(
+
+        'change',
+
+        async event => {
+
+            const file =
+                event.target.files[0];
+
+            if (!file) return;
+
+            await processFile(file);
+
+        }
+
+    );
+
+
+    /*
+    ========================================================
+    DRAG DROP
+    ========================================================
+    */
+
+    uploadBox.addEventListener(
+
+        'dragover',
+
+        event => {
+
+            event.preventDefault();
+
+            uploadBox.classList.add(
+                'dragover'
+            );
+
+        }
+
+    );
+
+
+    uploadBox.addEventListener(
+
+        'dragleave',
+
+        () => {
+
+            uploadBox.classList.remove(
+                'dragover'
+            );
+
+        }
+
+    );
+
+
+    uploadBox.addEventListener(
+
+        'drop',
+
+        async event => {
+
+            event.preventDefault();
+
+            uploadBox.classList.remove(
+                'dragover'
+            );
+
+            const file =
+                event.dataTransfer.files[0];
+
+            if (!file) return;
+
+            await processFile(file);
+
+        }
+
+    );
+
+
+    /*
+    ========================================================
+    PROCESS FILE
+    ========================================================
+    */
+
+    async function processFile(file) {
+
+        try {
+
+            resetUI();
+
+            progressStatus.innerHTML =
+                'Importing APKG...';
+
+            const result =
+                await engine.import(file);
+
+            displayResults(result);
+
+            localStorage.setItem(
+
+                'imported_flashcards',
+
+                JSON.stringify(result)
+
+            );
+
+            successBox.classList.remove(
+                'hidden'
+            );
+
+            resultsSection.classList.remove(
+                'hidden'
+            );
+
+            actions.classList.remove(
+                'hidden'
+            );
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            errorBox.classList.remove(
+                'hidden'
+            );
+
+            errorMessage.innerHTML =
+                error.message ||
+                'Unknown import error';
+
+        }
+
+    }
+
+
+    /*
+    ========================================================
+    RESULTS
+    ========================================================
+    */
+
+    function displayResults(result) {
+
+        document.getElementById(
+            'cards-count'
+        ).innerHTML =
+            result.cards.length;
+
+        document.getElementById(
+            'subjects-count'
+        ).innerHTML =
+            Object.keys(
+                result.subjects
+            ).length;
+
+        let chapters = 0;
+
+        Object.values(result.subjects)
+            .forEach(subject => {
+
+                chapters +=
+                    Object.keys(subject).length;
+
+            });
+
+        document.getElementById(
+            'chapters-count'
+        ).innerHTML = chapters;
+
+        document.getElementById(
+            'media-count'
+        ).innerHTML =
+            result.metadata.totalMedia;
+
+    }
+
+
+    /*
+    ========================================================
+    PROGRESS
+    ========================================================
+    */
+
+    function updateProgress(percent, message) {
+
+        progressBar.style.width =
+            `${percent}%`;
+
+        progressPercent.innerHTML =
+            `${Math.floor(percent)}%`;
+
+        progressStatus.innerHTML = message;
+
+    }
+
+
+    /*
+    ========================================================
+    RESET UI
+    ========================================================
+    */
+
+    function resetUI() {
+
+        successBox.classList.add(
+            'hidden'
+        );
+
+        errorBox.classList.add(
+            'hidden'
+        );
+
+    }
+
+
+    /*
+    ========================================================
+    OPEN VIEWER
+    ========================================================
+    */
+
+    document.getElementById(
+        'open-viewer-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            window.location.href =
+                './index.html';
+
+        }
+
+    );
+
+
+    /*
+    ========================================================
+    EXPORT JSON
+    ========================================================
+    */
+
+    document.getElementById(
+        'download-json-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            const data =
+                localStorage.getItem(
+                    'imported_flashcards'
+                );
+
+            if (!data) return;
+
+            const blob = new Blob(
+                [data],
+                {
+                    type:'application/json'
+                }
+            );
+
+            const url =
+                URL.createObjectURL(blob);
+
+            const a =
+                document.createElement('a');
+
+            a.href = url;
+
+            a.download =
+                'flashcards.json';
+
+            a.click();
+
+        }
+
+    );
+
+
+    /*
+    ========================================================
+    SAVE LOCALLY
+    ========================================================
+    */
+
+    document.getElementById(
+        'save-local-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            alert(
+                'Flashcards saved locally successfully.'
+            );
+
+        }
+
+    );
+
+
+    /*
+    ========================================================
+    CLEAR
+    ========================================================
+    */
+
+    document.getElementById(
+        'clear-btn'
+    )?.addEventListener(
+
+        'click',
+
+        () => {
+
+            const confirmClear = confirm(
+                'Clear imported data?'
+            );
+
+            if (!confirmClear) return;
+
+            localStorage.removeItem(
+                'imported_flashcards'
+            );
+
+            location.reload();
+
+        }
+
+    );
+
+</script>
+
+</body>
+</html>
