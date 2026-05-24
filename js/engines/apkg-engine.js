@@ -228,7 +228,7 @@ class APKGEngine {
         const SQL = await initSqlJs({
 
             locateFile: file =>
-                `./js/libs/${file}`
+                `js/libs/${file}`
 
         });
 
