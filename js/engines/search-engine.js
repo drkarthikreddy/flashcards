@@ -1,502 +1,633 @@
 /*
-
-SEARCH ENGINE — COMPLETE MEDICAL FLASHCARD SEARCH ENGINE
+========================================================
+SEARCH ENGINE
+========================================================
 
 FEATURES
+========================================================
 
-✔ Instant search ✔ Fuzzy search ✔ Subject filters ✔ Chapter filters ✔ Tag filters ✔ Search suggestions ✔ Search history ✔ Recent searches ✔ Highlight matches ✔ Debounced search ✔ Huge deck support ✔ Indexed searching ✔ Keyboard navigation ✔ Weak card search ✔ Bookmark search ✔ Smart ranking ✔ Offline support ✔ Mobile optimized ✔ Search analytics ✔ Fast local processing ✔ Zero backend
+✔ Fast fuzzy search
+✔ Subject filtering
+✔ Chapter filtering
+✔ Tag filtering
+✔ Search history
+✔ Recent searches
+✔ Highlight results
+✔ Fuse.js integration
+✔ Mobile optimized
+✔ Safe fallbacks
+✔ Result ranking
+✔ Offline support
 
-======================================================== */
+========================================================
+*/
 
 class SearchEngine {
 
     constructor() {
 
+        /*
+        ----------------------------------------------------
+        STORAGE
+        ----------------------------------------------------
+        */
+
         this.cards = [];
+
+        this.filteredCards = [];
 
         this.fuse = null;
 
-    }
+        this.searchHistory = [];
 
-    index(cards = []) {
+        this.recentSearches = [];
 
-        this.cards = cards;
+        this.maxRecentSearches = 20;
 
-        this.fuse = new Fuse(cards, {
+        this.options = {
 
-            keys: [
+            includeScore: true,
 
-                'question',
-
-                'answer',
-
-                'subject',
-
-                'chapter',
-
-                'tags'
-
-            ],
+            shouldSort: true,
 
             threshold: 0.3,
 
-            includeScore: true
+            location: 0,
 
-        });
+            distance: 100,
+
+            maxPatternLength: 64,
+
+            minMatchCharLength: 1,
+
+            keys: [
+
+                {
+                    name: 'question',
+                    weight: 0.5
+                },
+
+                {
+                    name: 'answer',
+                    weight: 0.3
+                },
+
+                {
+                    name: 'subject',
+                    weight: 0.1
+                },
+
+                {
+                    name: 'chapter',
+                    weight: 0.1
+                }
+
+            ]
+
+        };
 
     }
 
-    search(query = '') {
 
-        if (!query.trim()) {
+    /*
+    ========================================================
+    INDEX
+    ========================================================
+    */
 
-            return this.cards;
+    index(cards = []) {
+
+        try {
+
+            this.cards = cards;
+
+            /*
+            ------------------------------------------------
+            VALIDATE FUSE
+            ------------------------------------------------
+            */
+
+            if (
+                typeof Fuse === 'undefined'
+            ) {
+
+                console.error(
+                    'Fuse.js library missing'
+                );
+
+                return;
+
+            }
+
+            /*
+            ------------------------------------------------
+            CREATE INDEX
+            ------------------------------------------------
+            */
+
+            this.fuse = new Fuse(
+
+                cards,
+
+                this.options
+
+            );
+
+            console.log(
+                `Indexed ${cards.length} cards`
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                'Search indexing failed',
+                error
+            );
 
         }
 
-        if (!this.fuse) {
+    }
+
+
+    /*
+    ========================================================
+    SEARCH
+    ========================================================
+    */
+
+    search(query = '') {
+
+        try {
+
+            /*
+            ------------------------------------------------
+            EMPTY QUERY
+            ------------------------------------------------
+            */
+
+            if (!query.trim()) {
+
+                return this.cards;
+
+            }
+
+            /*
+            ------------------------------------------------
+            SAVE HISTORY
+            ------------------------------------------------
+            */
+
+            this.addRecentSearch(query);
+
+            /*
+            ------------------------------------------------
+            NO FUSE
+            ------------------------------------------------
+            */
+
+            if (!this.fuse) {
+
+                console.error(
+                    'Fuse not initialized'
+                );
+
+                return [];
+
+            }
+
+            /*
+            ------------------------------------------------
+            SEARCH
+            ------------------------------------------------
+            */
+
+            const results =
+                this.fuse.search(query);
+
+            /*
+            ------------------------------------------------
+            RETURN CARDS
+            ------------------------------------------------
+            */
+
+            return results.map(
+
+                result => result.item
+
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                'Search failed',
+                error
+            );
 
             return [];
 
         }
 
-        return this.fuse
-            .search(query)
-            .map(result => result.item);
-
     }
 
-}
 
-window.SearchEngine = SearchEngine;
+    /*
+    ========================================================
+    SUBJECT FILTER
+    ========================================================
+    */
 
+    filterBySubject(subject) {
 
-/*
-========================================================
-INITIALIZATION
-========================================================
-*/
+        if (!subject) {
 
-initialize() {
+            return this.cards;
 
-    this.loadHistory();
+        }
 
-    if (this.options.useIndexing) {
-        this.buildIndex();
-    }
+        return this.cards.filter(
 
-}
+            card =>
 
+                card.subject &&
+                card.subject === subject
 
-/*
-========================================================
-BUILD SEARCH INDEX
-========================================================
-*/
-
-buildIndex() {
-
-    this.index.clear();
-
-    this.cards.forEach(card => {
-
-        const searchable = this.createSearchableText(card);
-
-        searchable.split(/\s+/).forEach(word => {
-
-            const normalized = this.normalize(word);
-
-            if (!normalized || normalized.length < 2) return;
-
-            if (!this.index.has(normalized)) {
-                this.index.set(normalized, []);
-            }
-
-            this.index.get(normalized).push(card.id);
-
-        });
-
-    });
-
-}
-
-
-/*
-========================================================
-CREATE SEARCHABLE TEXT
-========================================================
-*/
-
-createSearchableText(card) {
-
-    return [
-        card.question || '',
-        card.answer || '',
-        card.subject || '',
-        card.chapter || '',
-        card.topic || '',
-        ...(card.tags || [])
-    ].join(' ');
-
-}
-
-
-/*
-========================================================
-MAIN SEARCH
-========================================================
-*/
-
-search(query = '', filters = {}) {
-
-    query = this.normalize(query);
-
-    this.activeFilters = {
-        ...this.activeFilters,
-        ...filters
-    };
-
-    let results = [...this.cards];
-
-    if (query) {
-
-        results = this.performSearch(query, results);
-
-        this.saveSearch(query);
-
-    }
-
-    results = this.applyFilters(results);
-
-    results = this.rankResults(results, query);
-
-    this.lastResults = results;
-
-    return results.slice(0, this.options.maxResults);
-
-}
-
-
-/*
-========================================================
-PERFORM SEARCH
-========================================================
-*/
-
-performSearch(query, cards) {
-
-    const words = query.split(/\s+/);
-
-    return cards.filter(card => {
-
-        const searchable = this.normalize(
-            this.createSearchableText(card)
         );
 
-        return words.every(word => {
+    }
 
-            return (
-                searchable.includes(word) ||
-                this.fuzzyMatch(word, searchable)
+
+    /*
+    ========================================================
+    CHAPTER FILTER
+    ========================================================
+    */
+
+    filterByChapter(chapter) {
+
+        if (!chapter) {
+
+            return this.cards;
+
+        }
+
+        return this.cards.filter(
+
+            card =>
+
+                card.chapter &&
+                card.chapter === chapter
+
+        );
+
+    }
+
+
+    /*
+    ========================================================
+    TAG FILTER
+    ========================================================
+    */
+
+    filterByTag(tag) {
+
+        if (!tag) {
+
+            return this.cards;
+
+        }
+
+        return this.cards.filter(
+
+            card => {
+
+                if (!card.tags) {
+
+                    return false;
+
+                }
+
+                return card.tags.includes(tag);
+
+            }
+
+        );
+
+    }
+
+
+    /*
+    ========================================================
+    ADVANCED SEARCH
+    ========================================================
+    */
+
+    advancedSearch({
+
+        query = '',
+
+        subject = '',
+
+        chapter = '',
+
+        tag = ''
+
+    } = {}) {
+
+        let results =
+            this.search(query);
+
+        /*
+        ----------------------------------------------------
+        SUBJECT
+        ----------------------------------------------------
+        */
+
+        if (subject) {
+
+            results = results.filter(
+
+                card =>
+
+                    card.subject === subject
+
             );
 
-        });
+        }
 
-    });
+        /*
+        ----------------------------------------------------
+        CHAPTER
+        ----------------------------------------------------
+        */
 
-}
+        if (chapter) {
 
+            results = results.filter(
 
-/*
-========================================================
-FUZZY MATCH
-========================================================
-*/
+                card =>
 
-fuzzyMatch(query, text) {
+                    card.chapter === chapter
 
-    if (query.length < 3) return false;
+            );
 
-    const words = text.split(/\s+/);
+        }
 
-    return words.some(word => {
+        /*
+        ----------------------------------------------------
+        TAG
+        ----------------------------------------------------
+        */
 
-        const distance = this.levenshtein(query, word);
+        if (tag) {
 
-        const similarity = 1 - (
-            distance / Math.max(query.length, word.length)
-        );
+            results = results.filter(
 
-        return similarity >= (1 - this.options.fuzzyThreshold);
+                card =>
 
-    });
+                    card.tags &&
+                    card.tags.includes(tag)
 
-}
+            );
 
+        }
 
-/*
-========================================================
-LEVENSHTEIN DISTANCE
-========================================================
-*/
+        return results;
 
-levenshtein(a, b) {
-
-    const matrix = [];
-
-    for (let i = 0; i <= b.length; i++) {
-        matrix[i] = [i];
     }
 
-    for (let j = 0; j <= a.length; j++) {
-        matrix[0][j] = j;
+
+    /*
+    ========================================================
+    RECENT SEARCHES
+    ========================================================
+    */
+
+    addRecentSearch(query) {
+
+        if (!query.trim()) {
+
+            return;
+
+        }
+
+        /*
+        ----------------------------------------------------
+        REMOVE DUPLICATES
+        ----------------------------------------------------
+        */
+
+        this.recentSearches =
+            this.recentSearches.filter(
+
+                item => item !== query
+
+            );
+
+        /*
+        ----------------------------------------------------
+        ADD FRONT
+        ----------------------------------------------------
+        */
+
+        this.recentSearches.unshift(query);
+
+        /*
+        ----------------------------------------------------
+        LIMIT
+        ----------------------------------------------------
+        */
+
+        if (
+
+            this.recentSearches.length >
+
+            this.maxRecentSearches
+
+        ) {
+
+            this.recentSearches.pop();
+
+        }
+
+        /*
+        ----------------------------------------------------
+        SAVE
+        ----------------------------------------------------
+        */
+
+        this.saveRecentSearches();
+
     }
 
-    for (let i = 1; i <= b.length; i++) {
 
-        for (let j = 1; j <= a.length; j++) {
+    /*
+    ========================================================
+    SAVE RECENTS
+    ========================================================
+    */
 
-            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+    saveRecentSearches() {
 
-                matrix[i][j] = matrix[i - 1][j - 1];
+        try {
 
-            } else {
+            localStorage.setItem(
 
-                matrix[i][j] = Math.min(
-                    matrix[i - 1][j - 1] + 1,
-                    matrix[i][j - 1] + 1,
-                    matrix[i - 1][j] + 1
+                'flashcard_recent_searches',
+
+                JSON.stringify(
+                    this.recentSearches
+                )
+
+            );
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+        }
+
+    }
+
+
+    /*
+    ========================================================
+    LOAD RECENTS
+    ========================================================
+    */
+
+    loadRecentSearches() {
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    'flashcard_recent_searches'
                 );
 
+            if (!saved) {
+
+                return;
+
             }
 
+            this.recentSearches =
+                JSON.parse(saved);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
         }
 
     }
 
-    return matrix[b.length][a.length];
 
-}
+    /*
+    ========================================================
+    CLEAR RECENTS
+    ========================================================
+    */
 
+    clearRecentSearches() {
 
-/*
-========================================================
-APPLY FILTERS
-========================================================
-*/
+        this.recentSearches = [];
 
-applyFilters(cards) {
+        localStorage.removeItem(
 
-    return cards.filter(card => {
+            'flashcard_recent_searches'
 
-        if (
-            this.activeFilters.subjects.length &&
-            !this.activeFilters.subjects.includes(card.subject)
-        ) {
-            return false;
-        }
-
-        if (
-            this.activeFilters.chapters.length &&
-            !this.activeFilters.chapters.includes(card.chapter)
-        ) {
-            return false;
-        }
-
-        if (
-            this.activeFilters.tags.length
-        ) {
-
-            const hasTag = this.activeFilters.tags.some(tag => {
-                return (card.tags || []).includes(tag);
-            });
-
-            if (!hasTag) return false;
-
-        }
-
-        if (
-            this.activeFilters.bookmarked &&
-            !card.bookmarked
-        ) {
-            return false;
-        }
-
-        if (
-            this.activeFilters.weak &&
-            !card.weak
-        ) {
-            return false;
-        }
-
-        return true;
-
-    });
-
-}
-
-
-/*
-========================================================
-RANK RESULTS
-========================================================
-*/
-
-rankResults(results, query) {
-
-    if (!query) return results;
-
-    return results.sort((a, b) => {
-
-        const scoreA = this.calculateScore(a, query);
-        const scoreB = this.calculateScore(b, query);
-
-        return scoreB - scoreA;
-
-    });
-
-}
-
-
-/*
-========================================================
-SCORE CALCULATION
-========================================================
-*/
-
-calculateScore(card, query) {
-
-    let score = 0;
-
-    const question = this.normalize(card.question || '');
-    const answer = this.normalize(card.answer || '');
-
-    if (question.includes(query)) {
-        score += 10;
-    }
-
-    if (answer.includes(query)) {
-        score += 5;
-    }
-
-    if ((card.tags || []).includes(query)) {
-        score += 8;
-    }
-
-    if ((card.subject || '').toLowerCase() === query) {
-        score += 15;
-    }
-
-    return score;
-
-}
-
-
-/*
-========================================================
-SEARCH SUGGESTIONS
-========================================================
-*/
-
-getSuggestions(query = '') {
-
-    query = this.normalize(query);
-
-    if (!query) return [];
-
-    const suggestions = new Set();
-
-    this.cards.forEach(card => {
-
-        const searchable = this.createSearchableText(card)
-            .split(/\s+/);
-
-        searchable.forEach(word => {
-
-            const normalized = this.normalize(word);
-
-            if (
-                normalized.startsWith(query) &&
-                normalized.length > 2
-            ) {
-                suggestions.add(word);
-            }
-
-        });
-
-    });
-
-    return Array.from(suggestions)
-        .slice(0, this.options.maxSuggestions);
-
-}
-
-
-/*
-========================================================
-HIGHLIGHT MATCHES
-========================================================
-*/
-
-highlight(text, query) {
-
-    if (!query || !this.options.highlightMatches) {
-        return text;
-    }
-
-    const regex = new RegExp(
-        `(${query})`,
-        'gi'
-    );
-
-    return text.replace(
-        regex,
-        '<mark>$1</mark>'
-    );
-
-}
-
-
-/*
-========================================================
-SEARCH HISTORY
-========================================================
-*/
-
-saveSearch(query) {
-
-    if (!this.options.saveHistory) return;
-
-    if (!query.trim()) return;
-
-    this.searchHistory = this.searchHistory.filter(
-        item => item !== query
-    );
-
-    this.searchHistory.unshift(query);
-
-    this.searchHistory = this.searchHistory.slice(
-        0,
-        this.options.historyLimit
-    );
-
-    localStorage.setItem(
-        'flashcardSearchHistory',
-        JSON.stringify(this.searchHistory)
-    );
-
-}
-
-
-loadHistory() {
-
-    try {
-
-        this.searchHistory = JSON.parse(
-            localStorage.getItem('flashcardSearchHistory') || '[]'
         );
 
-    } catch (error) {
+    }
+
+
+    /*
+    ========================================================
+    HIGHLIGHT
+    ========================================================
+    */
+
+    highlight(text = '', query = '') {
+
+        if (!query.trim()) {
+
+            return text;
+
+        }
+
+        try {
+
+            const regex =
+                new RegExp(
+
+                    `(${query})`,
+
+                    'gi'
+
+                );
+
+            return text.replace(
+
+                regex,
+
+                '<mark>$1</mark>'
+
+            );
+
+        }
+        catch (error) {
+
+            return text;
+
+        }
+
+    }
+
+
+    /*
+    ========================================================
+    SEARCH STATISTICS
+    ========================================================
+    */
+
+    getSearchStatistics() {
+
+        return {
+
+            totalCards:
+                this.cards.length,
+
+            totalSearches:
+                this.recentSearches.length,
+
+            indexed:
+                !!this.fuse,
+
+            recentSearches:
+                this.recentSearches
+
+        };
+
+    }
+
+
+    /*
+    ========================================================
+    RESET
+    ========================================================
+    */
+
+    reset() {
+
+        this.cards = [];
+
+        this.filteredCards = [];
+
+        this.fuse = null;
 
         this.searchHistory = [];
 
@@ -505,206 +636,10 @@ loadHistory() {
 }
 
 
-clearHistory() {
-
-    this.searchHistory = [];
-
-    localStorage.removeItem(
-        'flashcardSearchHistory'
-    );
-
-}
-
-
 /*
 ========================================================
-DEBOUNCED SEARCH
+EXPORT
 ========================================================
-*/
-
-debounceSearch(query, callback) {
-
-    clearTimeout(this.debounceTimer);
-
-    this.debounceTimer = setTimeout(() => {
-
-        const results = this.search(query);
-
-        callback(results);
-
-    }, this.options.debounceTime);
-
-}
-
-
-/*
-========================================================
-SUBJECT LIST
-========================================================
-*/
-
-getSubjects() {
-
-    return [...new Set(
-        this.cards.map(card => card.subject)
-    )].sort();
-
-}
-
-
-/*
-========================================================
-CHAPTER LIST
-========================================================
-*/
-
-getChapters(subject = null) {
-
-    let cards = this.cards;
-
-    if (subject) {
-        cards = cards.filter(card => {
-            return card.subject === subject;
-        });
-    }
-
-    return [...new Set(
-        cards.map(card => card.chapter)
-    )].sort();
-
-}
-
-
-/*
-========================================================
-TAG LIST
-========================================================
-*/
-
-getTags() {
-
-    const tags = new Set();
-
-    this.cards.forEach(card => {
-
-        (card.tags || []).forEach(tag => {
-            tags.add(tag);
-        });
-
-    });
-
-    return [...tags].sort();
-
-}
-
-
-/*
-========================================================
-ANALYTICS
-========================================================
-*/
-
-getAnalytics() {
-
-    return {
-        totalCards: this.cards.length,
-        subjects: this.getSubjects().length,
-        chapters: this.getChapters().length,
-        tags: this.getTags().length,
-        history: this.searchHistory.length,
-        indexedWords: this.index.size
-    };
-
-}
-
-
-/*
-========================================================
-NORMALIZATION
-========================================================
-*/
-
-normalize(text = '') {
-
-    if (!this.options.caseSensitive) {
-        text = text.toLowerCase();
-    }
-
-    return text
-        .replace(/<[^>]*>/g, '')
-        .replace(/[^a-zA-Z0-9\s]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-}
-
-
-/*
-========================================================
-UPDATE DATASET
-========================================================
-*/
-
-updateCards(cards = []) {
-
-    this.cards = cards;
-
-    if (this.options.useIndexing) {
-        this.buildIndex();
-    }
-
-}
-
-
-/*
-========================================================
-RESET FILTERS
-========================================================
-*/
-
-resetFilters() {
-
-    this.activeFilters = {
-        subjects: [],
-        chapters: [],
-        tags: [],
-        bookmarked: false,
-        weak: false
-    };
-
-}
-
-
-/*
-========================================================
-EXPORT SEARCH RESULTS
-========================================================
-*/
-
-exportResults(results = this.lastResults) {
-
-    return JSON.stringify(results, null, 2);
-
-}
-
-}
-
-/*
-
-GLOBAL EXPORT
-
 */
 
 window.SearchEngine = SearchEngine;
-
-/*
-
-USAGE EXAMPLE
-
-const searchEngine = new SearchEngine(cards);
-
-const results = searchEngine.search('c5a');
-
-console.log(results);
-
-======================================================== */
