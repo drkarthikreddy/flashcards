@@ -1,0 +1,653 @@
+/*
+========================================================
+VIEWER.CSS — ADVANCED FLASHCARD VIEWER STYLES
+========================================================
+*/
+
+:root{
+
+    --viewer-bg:#f5f7fb;
+
+    --card-bg:#ffffff;
+
+    --card-border:#e5e7eb;
+
+    --text-primary:#111827;
+
+    --text-secondary:#6b7280;
+
+    --accent:#111827;
+
+    --success:#10b981;
+
+    --danger:#ef4444;
+
+    --warning:#f59e0b;
+
+    --shadow:
+        0 10px 40px rgba(0,0,0,0.08);
+
+    --radius:28px;
+
+}
+
+/*
+========================================================
+VIEWER ROOT
+========================================================
+*/
+
+.viewer-root{
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    background:var(--viewer-bg);
+    position:relative;
+    overflow:hidden;
+}
+
+/*
+========================================================
+VIEWER HEADER
+========================================================
+*/
+
+.viewer-header{
+    height:80px;
+    background:white;
+    border-bottom:1px solid #e5e7eb;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 24px;
+    z-index:10;
+}
+
+.viewer-meta{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.viewer-subject{
+    font-size:1rem;
+    font-weight:800;
+    color:var(--text-primary);
+}
+
+.viewer-chapter{
+    font-size:0.85rem;
+    color:var(--text-secondary);
+}
+
+/*
+========================================================
+PROGRESS
+========================================================
+*/
+
+.viewer-progress-wrapper{
+    width:220px;
+    height:10px;
+    background:#e5e7eb;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.viewer-progress{
+    width:0%;
+    height:100%;
+    background:var(--accent);
+    transition:0.25s ease;
+}
+
+.viewer-counter{
+    margin-top:8px;
+    font-size:0.85rem;
+    color:var(--text-secondary);
+    text-align:right;
+}
+
+/*
+========================================================
+VIEWER STAGE
+========================================================
+*/
+
+.viewer-stage{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px;
+    perspective:2000px;
+    overflow:hidden;
+}
+
+/*
+========================================================
+CARD WRAPPER
+========================================================
+*/
+
+.viewer-card-wrapper{
+    width:min(980px,100%);
+    height:min(650px,100%);
+    position:relative;
+}
+
+/*
+========================================================
+CARD
+========================================================
+*/
+
+.viewer-card{
+    width:100%;
+    height:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:0.7s cubic-bezier(
+        0.2,
+        0.8,
+        0.2,
+        1
+    );
+    cursor:pointer;
+}
+
+.viewer-card.flipped{
+    transform:rotateY(180deg);
+}
+
+/*
+========================================================
+CARD FACE
+========================================================
+*/
+
+.viewer-face{
+    position:absolute;
+    inset:0;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:40px;
+    backface-visibility:hidden;
+    overflow:auto;
+    display:flex;
+    flex-direction:column;
+}
+
+/*
+========================================================
+FRONT
+========================================================
+*/
+
+.viewer-front{
+    z-index:2;
+}
+
+/*
+========================================================
+BACK
+========================================================
+*/
+
+.viewer-back{
+    transform:rotateY(180deg);
+}
+
+/*
+========================================================
+LABELS
+========================================================
+*/
+
+.viewer-label{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 16px;
+    border-radius:999px;
+    background:#f3f4f6;
+    font-size:0.85rem;
+    font-weight:700;
+    color:var(--text-secondary);
+    width:fit-content;
+}
+
+/*
+========================================================
+QUESTION
+========================================================
+*/
+
+.viewer-question{
+    margin-top:30px;
+    font-size:2rem;
+    line-height:1.8;
+    font-weight:800;
+    color:var(--text-primary);
+    overflow-wrap:anywhere;
+}
+
+/*
+========================================================
+ANSWER
+========================================================
+*/
+
+.viewer-answer{
+    margin-top:24px;
+    font-size:1.15rem;
+    line-height:2;
+    color:var(--text-primary);
+    overflow-wrap:anywhere;
+}
+
+/*
+========================================================
+MEDIA
+========================================================
+*/
+
+.viewer-answer img,
+.viewer-question img{
+    max-width:100%;
+    border-radius:18px;
+    margin:18px 0;
+}
+
+.viewer-answer audio,
+.viewer-question audio{
+    width:100%;
+    margin-top:20px;
+}
+
+/*
+========================================================
+LATEX
+========================================================
+*/
+
+.fc-latex{
+    padding:2px 6px;
+    border-radius:8px;
+    background:#f3f4f6;
+    font-family:monospace;
+}
+
+/*
+========================================================
+TAGS
+========================================================
+*/
+
+.viewer-tags{
+    margin-top:auto;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    padding-top:30px;
+}
+
+.viewer-tag{
+    padding:8px 14px;
+    border-radius:999px;
+    background:#f3f4f6;
+    font-size:0.8rem;
+    font-weight:700;
+    color:#4b5563;
+}
+
+/*
+========================================================
+CONTROLS
+========================================================
+*/
+
+.viewer-controls{
+    height:90px;
+    background:white;
+    border-top:1px solid #e5e7eb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    padding:0 20px;
+    z-index:10;
+}
+
+/*
+========================================================
+BUTTONS
+========================================================
+*/
+
+.viewer-btn{
+    min-width:64px;
+    height:56px;
+    border:none;
+    border-radius:18px;
+    background:#f3f4f6;
+    color:#111827;
+    cursor:pointer;
+    font-size:1rem;
+    font-weight:800;
+    transition:0.2s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:0 18px;
+}
+
+.viewer-btn:hover{
+    transform:translateY(-2px);
+    background:#111827;
+    color:white;
+}
+
+.viewer-btn.active{
+    background:#111827;
+    color:white;
+}
+
+/*
+========================================================
+SPECIAL BUTTONS
+========================================================
+*/
+
+.viewer-btn.success{
+    background:var(--success);
+    color:white;
+}
+
+.viewer-btn.danger{
+    background:var(--danger);
+    color:white;
+}
+
+.viewer-btn.warning{
+    background:var(--warning);
+    color:white;
+}
+
+/*
+========================================================
+OVERLAY
+========================================================
+*/
+
+.viewer-overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    backdrop-filter:blur(10px);
+}
+
+.viewer-overlay.hidden{
+    display:none;
+}
+
+.viewer-overlay-card{
+    width:min(500px,90%);
+    background:white;
+    border-radius:28px;
+    padding:32px;
+    text-align:center;
+    box-shadow:var(--shadow);
+}
+
+.viewer-overlay-title{
+    font-size:1.8rem;
+    font-weight:800;
+    color:#111827;
+}
+
+.viewer-overlay-sub{
+    margin-top:12px;
+    color:#6b7280;
+    line-height:1.8;
+}
+
+/*
+========================================================
+LOADER
+========================================================
+*/
+
+.viewer-loader{
+    position:absolute;
+    inset:0;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+}
+
+.viewer-spinner{
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    border:6px solid #e5e7eb;
+    border-top-color:#111827;
+    animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+
+    to{
+        transform:rotate(360deg);
+    }
+
+}
+
+/*
+========================================================
+ANIMATIONS
+========================================================
+*/
+
+.fade-scale{
+
+    animation:fadeScale 0.35s ease;
+
+}
+
+@keyframes fadeScale{
+
+    from{
+        opacity:0;
+        transform:scale(0.96);
+    }
+
+    to{
+        opacity:1;
+        transform:scale(1);
+    }
+
+}
+
+.slide-left{
+
+    animation:slideLeft 0.35s ease;
+
+}
+
+@keyframes slideLeft{
+
+    from{
+        opacity:0;
+        transform:translateX(40px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+
+}
+
+.slide-right{
+
+    animation:slideRight 0.35s ease;
+
+}
+
+@keyframes slideRight{
+
+    from{
+        opacity:0;
+        transform:translateX(-40px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+
+}
+
+/*
+========================================================
+DARK MODE
+========================================================
+*/
+
+.dark-mode{
+
+    --viewer-bg:#0f172a;
+
+    --card-bg:#111827;
+
+    --card-border:#1f2937;
+
+    --text-primary:#f9fafb;
+
+    --text-secondary:#9ca3af;
+
+    --accent:#f9fafb;
+
+    --shadow:
+        0 10px 40px rgba(0,0,0,0.4);
+
+}
+
+.dark-mode .viewer-header,
+.dark-mode .viewer-controls{
+    background:#111827;
+    border-color:#1f2937;
+}
+
+.dark-mode .viewer-btn{
+    background:#1f2937;
+    color:#f9fafb;
+}
+
+.dark-mode .viewer-btn:hover{
+    background:#f9fafb;
+    color:#111827;
+}
+
+.dark-mode .viewer-label,
+.dark-mode .viewer-tag{
+    background:#1f2937;
+    color:#d1d5db;
+}
+
+/*
+========================================================
+MOBILE
+========================================================
+*/
+
+@media(max-width:900px){
+
+    .viewer-stage{
+        padding:20px;
+    }
+
+    .viewer-card-wrapper{
+        height:560px;
+    }
+
+    .viewer-question{
+        font-size:1.6rem;
+    }
+
+}
+
+@media(max-width:700px){
+
+    .viewer-header{
+        padding:0 16px;
+        height:72px;
+    }
+
+    .viewer-progress-wrapper{
+        width:140px;
+    }
+
+    .viewer-card-wrapper{
+        height:500px;
+    }
+
+    .viewer-face{
+        padding:24px;
+    }
+
+    .viewer-question{
+        font-size:1.3rem;
+        line-height:1.7;
+    }
+
+    .viewer-answer{
+        font-size:1rem;
+    }
+
+    .viewer-controls{
+        gap:10px;
+        overflow-x:auto;
+        justify-content:flex-start;
+    }
+
+    .viewer-btn{
+        min-width:54px;
+        height:50px;
+        border-radius:14px;
+        font-size:0.9rem;
+    }
+
+}
+
+@media(max-width:480px){
+
+    .viewer-card-wrapper{
+        height:440px;
+    }
+
+    .viewer-face{
+        padding:20px;
+    }
+
+    .viewer-question{
+        font-size:1.1rem;
+    }
+
+    .viewer-answer{
+        font-size:0.95rem;
+        line-height:1.8;
+    }
+
+}

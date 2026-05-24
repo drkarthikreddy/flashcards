@@ -1,0 +1,429 @@
+/*
+========================================================
+FLASHCARDS.CSS — MAIN APPLICATION STYLES
+========================================================
+*/
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    font-family:Inter,sans-serif;
+    background:#f5f7fb;
+    color:#111827;
+    overflow:hidden;
+}
+
+/*
+========================================================
+APP LAYOUT
+========================================================
+*/
+
+.app-shell{
+    width:100%;
+    height:100vh;
+    display:grid;
+    grid-template-columns:320px 1fr;
+}
+
+/*
+========================================================
+SIDEBAR
+========================================================
+*/
+
+.sidebar{
+    background:#ffffff;
+    border-right:1px solid #e5e7eb;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+.sidebar-header{
+    padding:24px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.logo{
+    font-size:1.5rem;
+    font-weight:800;
+}
+
+.logo-sub{
+    margin-top:6px;
+    font-size:0.9rem;
+    color:#6b7280;
+}
+
+/*
+========================================================
+IMPORT
+========================================================
+*/
+
+.import-section{
+    padding:20px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.import-label{
+    display:block;
+    margin-bottom:10px;
+    font-size:0.9rem;
+    font-weight:700;
+}
+
+#import-apkg{
+    width:100%;
+    padding:12px;
+    border-radius:14px;
+    border:1px solid #d1d5db;
+    background:#fff;
+    cursor:pointer;
+}
+
+/*
+========================================================
+PROGRESS
+========================================================
+*/
+
+.progress-container{
+    margin-top:14px;
+    width:100%;
+    height:10px;
+    background:#e5e7eb;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    width:0%;
+    height:100%;
+    background:#111827;
+    transition:0.3s ease;
+}
+
+.import-status{
+    margin-top:10px;
+    font-size:0.85rem;
+    color:#6b7280;
+}
+
+/*
+========================================================
+SEARCH
+========================================================
+*/
+
+.search-section{
+    padding:20px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.search-input{
+    width:100%;
+    padding:14px 16px;
+    border-radius:16px;
+    border:1px solid #d1d5db;
+    font-size:0.95rem;
+    outline:none;
+}
+
+.search-input:focus{
+    border-color:#111827;
+}
+
+/*
+========================================================
+SUBJECTS
+========================================================
+*/
+
+.subjects-section{
+    flex:1;
+    overflow:auto;
+    padding:20px;
+}
+
+.section-title{
+    font-size:0.85rem;
+    font-weight:800;
+    letter-spacing:1px;
+    color:#6b7280;
+    margin-bottom:14px;
+}
+
+.subjects-list,
+.chapters-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.subject-btn,
+.chapter-btn{
+    width:100%;
+    text-align:left;
+    border:none;
+    background:#f3f4f6;
+    padding:14px 16px;
+    border-radius:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s ease;
+}
+
+.subject-btn:hover,
+.chapter-btn:hover{
+    background:#111827;
+    color:white;
+}
+
+/*
+========================================================
+MAIN CONTENT
+========================================================
+*/
+
+.main-content{
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+/*
+========================================================
+TOPBAR
+========================================================
+*/
+
+.topbar{
+    height:72px;
+    background:white;
+    border-bottom:1px solid #e5e7eb;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 24px;
+}
+
+.topbar-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.topbar-title{
+    font-size:1.1rem;
+    font-weight:800;
+}
+
+.topbar-right{
+    display:flex;
+    gap:10px;
+}
+
+/*
+========================================================
+ACTION BUTTONS
+========================================================
+*/
+
+.action-btn{
+    border:none;
+    background:#111827;
+    color:white;
+    padding:12px 18px;
+    border-radius:14px;
+    cursor:pointer;
+    font-weight:700;
+    transition:0.2s ease;
+}
+
+.action-btn:hover{
+    transform:translateY(-1px);
+}
+
+/*
+========================================================
+VIEWER AREA
+========================================================
+*/
+
+.viewer-wrapper{
+    flex:1;
+    overflow:hidden;
+    position:relative;
+}
+
+/*
+========================================================
+EMPTY STATE
+========================================================
+*/
+
+.empty-state{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:16px;
+    color:#6b7280;
+}
+
+.empty-title{
+    font-size:2rem;
+    font-weight:800;
+    color:#111827;
+}
+
+.empty-sub{
+    font-size:1rem;
+}
+
+/*
+========================================================
+BOTTOM BAR
+========================================================
+*/
+
+.bottom-bar{
+    height:70px;
+    background:white;
+    border-top:1px solid #e5e7eb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    padding:0 20px;
+}
+
+.bottom-btn{
+    border:none;
+    background:#f3f4f6;
+    padding:12px 18px;
+    border-radius:14px;
+    cursor:pointer;
+    font-weight:700;
+    transition:0.2s ease;
+}
+
+.bottom-btn:hover{
+    background:#111827;
+    color:white;
+}
+
+/*
+========================================================
+SCROLLBAR
+========================================================
+*/
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#d1d5db;
+    border-radius:999px;
+}
+
+::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+/*
+========================================================
+UTILITIES
+========================================================
+*/
+
+.hidden{
+    display:none !important;
+}
+
+.fade-in{
+    animation:fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn{
+
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+/*
+========================================================
+RESPONSIVE
+========================================================
+*/
+
+@media(max-width:1100px){
+
+    .app-shell{
+        grid-template-columns:260px 1fr;
+    }
+
+}
+
+@media(max-width:900px){
+
+    .app-shell{
+        grid-template-columns:1fr;
+    }
+
+    .sidebar{
+        position:fixed;
+        inset:0 auto 0 0;
+        width:300px;
+        z-index:200;
+        transform:translateX(-100%);
+        transition:0.3s ease;
+    }
+
+    .sidebar.active{
+        transform:translateX(0);
+    }
+
+}
+
+@media(max-width:600px){
+
+    .topbar{
+        padding:0 14px;
+    }
+
+    .topbar-title{
+        font-size:1rem;
+    }
+
+    .action-btn{
+        padding:10px 14px;
+        font-size:0.85rem;
+    }
+
+    .bottom-bar{
+        gap:8px;
+        overflow:auto;
+    }
+
+}
