@@ -1,851 +1,549 @@
 /*
-
-BOOKMARK ENGINE — COMPLETE STUDY STATE ENGINE
+========================================================
+BOOKMARK ENGINE
+========================================================
 
 FEATURES
-
-✔ Bookmark cards ✔ Weak cards ✔ Favorite cards ✔ Recently viewed ✔ Study history ✔ Persistent local storage ✔ IndexedDB support ✔ Import/export ✔ Study sessions ✔ Revision queue ✔ Subject-wise bookmarks ✔ Chapter-wise bookmarks ✔ Bookmark notes ✔ Bookmark timestamps ✔ Statistics ✔ Offline support ✔ Huge deck support ✔ Sync-ready architecture ✔ Search within bookmarks ✔ Bulk operations ✔ Mobile optimized
-
-======================================================== */
-
-class BookmarkEngine {
-
-constructor(options = {}) {
-
-    this.options = {
-        useIndexedDB: true,
-        localStorageKey: 'medical_flashcard_state',
-        autoSave: true,
-        maxRecentCards: 500,
-        ...options
-    };
-
-    this.dbName = 'alpotusFlashcards';
-    this.dbVersion = 1;
-
-    this.indexedDB = null;
-
-    this.state = {
-
-        bookmarks: [],
-        weakCards: [],
-        favorites: [],
-        hiddenCards: [],
-
-        recentCards: [],
-        viewedCards: [],
-
-        notes: {},
-
-        studySessions: [],
-
-        revisionQueue: [],
-
-        analytics: {
-            totalViewed: 0,
-            totalBookmarks: 0,
-            totalWeak: 0,
-            totalStudyTime: 0,
-            streak: 0
-        }
-
-    };
-
-}
-
-
-/*
 ========================================================
-INITIALIZATION
+
+✔ Add bookmarks
+✔ Remove bookmarks
+✔ Toggle bookmarks
+✔ Check bookmark status
+✔ LocalStorage persistence
+✔ Export bookmarks
+✔ Import bookmarks
+✔ Clear bookmarks
+✔ Bookmark statistics
+✔ Offline support
+✔ Safe fallbacks
+✔ Mobile optimized
+
 ========================================================
 */
 
-async init() {
+(function () {
 
-    try {
+    /*
+    ========================================================
+    ENGINE
+    ========================================================
+    */
 
-        if (this.options.useIndexedDB) {
-            await this.initializeIndexedDB();
-        }
+    function BookmarkEngine() {
 
-        await this.loadState();
+        /*
+        ----------------------------------------------------
+        STORAGE
+        ----------------------------------------------------
+        */
 
-        return true;
+        this.bookmarks = [];
 
-    } catch (error) {
+        this.storageKey =
+            'flashcard_bookmarks';
 
-        console.error(error);
-        return false;
+        /*
+        ----------------------------------------------------
+        LOAD SAVED
+        ----------------------------------------------------
+        */
+
+        this.loadBookmarks();
 
     }
 
-}
 
+    /*
+    ========================================================
+    LOAD BOOKMARKS
+    ========================================================
+    */
 
-/*
-========================================================
-INDEXEDDB
-========================================================
-*/
+    BookmarkEngine.prototype.loadBookmarks =
+        function () {
 
-async initializeIndexedDB() {
+        try {
 
-    return new Promise((resolve, reject) => {
+            var saved =
+                localStorage.getItem(
+                    this.storageKey
+                );
 
-        const request = indexedDB.open(
-            this.dbName,
-            this.dbVersion
-        );
+            if (!saved) {
 
-        request.onupgradeneeded = event => {
+                this.bookmarks = [];
 
-            const db = event.target.result;
-
-            if (!db.objectStoreNames.contains('studyState')) {
-
-                db.createObjectStore('studyState', {
-                    keyPath: 'key'
-                });
+                return;
 
             }
 
-        };
+            this.bookmarks =
+                JSON.parse(saved);
 
-        request.onsuccess = event => {
+            /*
+            ------------------------------------------------
+            VALIDATE ARRAY
+            ------------------------------------------------
+            */
 
-            this.indexedDB = event.target.result;
-            resolve(true);
+            if (
+                !Array.isArray(
+                    this.bookmarks
+                )
+            ) {
 
-        };
+                this.bookmarks = [];
 
-        request.onerror = error => reject(error);
-
-    });
-
-}
-
-
-/*
-========================================================
-SAVE STATE
-========================================================
-*/
-
-async saveState() {
-
-    try {
-
-        if (
-            this.options.useIndexedDB &&
-            this.indexedDB
-        ) {
-
-            await this.saveIndexedDB();
+            }
 
         }
-        else {
+        catch (error) {
+
+            console.error(
+                'Failed to load bookmarks',
+                error
+            );
+
+            this.bookmarks = [];
+
+        }
+
+    };
+
+
+    /*
+    ========================================================
+    SAVE BOOKMARKS
+    ========================================================
+    */
+
+    BookmarkEngine.prototype.saveBookmarks =
+        function () {
+
+        try {
 
             localStorage.setItem(
-                this.options.localStorageKey,
-                JSON.stringify(this.state)
+
+                this.storageKey,
+
+                JSON.stringify(
+                    this.bookmarks
+                )
+
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                'Failed to save bookmarks',
+                error
             );
 
         }
 
-        return true;
-
-    } catch (error) {
-
-        console.error(error);
-        return false;
-
-    }
-
-}
+    };
 
 
-/*
-========================================================
-LOAD STATE
-========================================================
-*/
+    /*
+    ========================================================
+    ADD BOOKMARK
+    ========================================================
+    */
 
-async loadState() {
+    BookmarkEngine.prototype.addBookmark =
+        function (cardId) {
 
-    try {
+        try {
 
-        let loaded = null;
+            if (
+                !cardId
+            ) {
 
-        if (
-            this.options.useIndexedDB &&
-            this.indexedDB
-        ) {
+                return false;
 
-            loaded = await this.loadIndexedDB();
+            }
+
+            /*
+            ------------------------------------------------
+            AVOID DUPLICATES
+            ------------------------------------------------
+            */
+
+            if (
+
+                this.bookmarks.indexOf(
+                    cardId
+                ) !== -1
+
+            ) {
+
+                return false;
+
+            }
+
+            /*
+            ------------------------------------------------
+            ADD
+            ------------------------------------------------
+            */
+
+            this.bookmarks.push(cardId);
+
+            /*
+            ------------------------------------------------
+            SAVE
+            ------------------------------------------------
+            */
+
+            this.saveBookmarks();
+
+            return true;
 
         }
-        else {
+        catch (error) {
 
-            loaded = JSON.parse(
-                localStorage.getItem(
-                    this.options.localStorageKey
-                ) || 'null'
+            console.error(error);
+
+            return false;
+
+        }
+
+    };
+
+
+    /*
+    ========================================================
+    REMOVE BOOKMARK
+    ========================================================
+    */
+
+    BookmarkEngine.prototype.removeBookmark =
+        function (cardId) {
+
+        try {
+
+            this.bookmarks =
+                this.bookmarks.filter(
+
+                    function (id) {
+
+                        return id !== cardId;
+
+                    }
+
+                );
+
+            this.saveBookmarks();
+
+            return true;
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            return false;
+
+        }
+
+    };
+
+
+    /*
+    ========================================================
+    TOGGLE BOOKMARK
+    ========================================================
+    */
+
+    BookmarkEngine.prototype.toggleBookmark =
+        function (cardId) {
+
+        try {
+
+            if (
+
+                this.isBookmarked(
+                    cardId
+                )
+
+            ) {
+
+                this.removeBookmark(
+                    cardId
+                );
+
+                return false;
+
+            }
+
+            this.addBookmark(cardId);
+
+            return true;
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            return false;
+
+        }
+
+    };
+
+
+    /*
+    ========================================================
+    CHECK BOOKMARK
+    ========================================================
+    */
+
+    BookmarkEngine.prototype.isBookmarked =
+        function (cardId) {
+
+        try {
+
+            return (
+
+                this.bookmarks.indexOf(
+                    cardId
+                ) !== -1
+
             );
 
         }
+        catch (error) {
 
-        if (loaded) {
-            this.state = loaded;
+            console.error(error);
+
+            return false;
+
         }
 
-        return this.state;
-
-    } catch (error) {
-
-        console.error(error);
-        return this.state;
-
-    }
-
-}
+    };
 
 
-/*
-========================================================
-INDEXEDDB SAVE
-========================================================
-*/
+    /*
+    ========================================================
+    GET ALL BOOKMARKS
+    ========================================================
+    */
 
-async saveIndexedDB() {
+    BookmarkEngine.prototype.getBookmarks =
+        function () {
 
-    return new Promise((resolve, reject) => {
+        return this.bookmarks;
 
-        const transaction = this.indexedDB.transaction(
-            ['studyState'],
-            'readwrite'
-        );
-
-        const store = transaction.objectStore('studyState');
-
-        const request = store.put({
-            key: 'mainState',
-            data: this.state
-        });
-
-        request.onsuccess = () => resolve(true);
-        request.onerror = error => reject(error);
-
-    });
-
-}
+    };
 
 
-/*
-========================================================
-INDEXEDDB LOAD
-========================================================
-*/
+    /*
+    ========================================================
+    GET BOOKMARKED CARDS
+    ========================================================
+    */
 
-async loadIndexedDB() {
+    BookmarkEngine.prototype.getBookmarkedCards =
+        function (cards) {
 
-    return new Promise((resolve, reject) => {
+        try {
 
-        const transaction = this.indexedDB.transaction(
-            ['studyState'],
-            'readonly'
-        );
+            if (
+                !Array.isArray(cards)
+            ) {
 
-        const store = transaction.objectStore('studyState');
+                return [];
 
-        const request = store.get('mainState');
+            }
 
-        request.onsuccess = () => {
+            return cards.filter(
 
-            resolve(
-                request.result
-                    ? request.result.data
-                    : null
+                function (card) {
+
+                    return (
+                        this.bookmarks.indexOf(
+                            card.id
+                        ) !== -1
+                    );
+
+                }.bind(this)
+
             );
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            return [];
+
+        }
+
+    };
+
+
+    /*
+    ========================================================
+    CLEAR BOOKMARKS
+    ========================================================
+    */
+
+    BookmarkEngine.prototype.clearBookmarks =
+        function () {
+
+        try {
+
+            this.bookmarks = [];
+
+            this.saveBookmarks();
+
+            return true;
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            return false;
+
+        }
+
+    };
+
+
+    /*
+    ========================================================
+    EXPORT BOOKMARKS
+    ========================================================
+    */
+
+    BookmarkEngine.prototype.exportBookmarks =
+        function () {
+
+        try {
+
+            return JSON.stringify({
+
+                bookmarks:
+                    this.bookmarks,
+
+                exportedAt:
+                    new Date()
+                        .toISOString()
+
+            });
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            return null;
+
+        }
+
+    };
+
+
+    /*
+    ========================================================
+    IMPORT BOOKMARKS
+    ========================================================
+    */
+
+    BookmarkEngine.prototype.importBookmarks =
+        function (jsonData) {
+
+        try {
+
+            var data =
+                JSON.parse(jsonData);
+
+            if (
+                !data.bookmarks
+            ) {
+
+                return false;
+
+            }
+
+            if (
+                !Array.isArray(
+                    data.bookmarks
+                )
+            ) {
+
+                return false;
+
+            }
+
+            this.bookmarks =
+                data.bookmarks;
+
+            this.saveBookmarks();
+
+            return true;
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            return false;
+
+        }
+
+    };
+
+
+    /*
+    ========================================================
+    STATISTICS
+    ========================================================
+    */
+
+    BookmarkEngine.prototype.getStatistics =
+        function () {
+
+        return {
+
+            totalBookmarks:
+                this.bookmarks.length,
+
+            storageKey:
+                this.storageKey,
+
+            saved:
+                true
 
         };
 
-        request.onerror = error => reject(error);
-
-    });
-
-}
-
-
-/*
-========================================================
-BOOKMARKS
-========================================================
-*/
-
-async addBookmark(card) {
-
-    if (!card || !card.id) return false;
-
-    const exists = this.isBookmarked(card.id);
-
-    if (exists) return true;
-
-    this.state.bookmarks.push({
-        id: card.id,
-        subject: card.subject || 'General',
-        chapter: card.chapter || 'General',
-        question: card.question || '',
-        createdAt: Date.now()
-    });
-
-    this.state.analytics.totalBookmarks =
-        this.state.bookmarks.length;
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-async removeBookmark(cardId) {
-
-    this.state.bookmarks = this.state.bookmarks.filter(
-        bookmark => bookmark.id !== cardId
-    );
-
-    this.state.analytics.totalBookmarks =
-        this.state.bookmarks.length;
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-async toggleBookmark(card) {
-
-    if (this.isBookmarked(card.id)) {
-        return await this.removeBookmark(card.id);
-    }
-
-    return await this.addBookmark(card);
-
-}
-
-
-isBookmarked(cardId) {
-
-    return this.state.bookmarks.some(
-        bookmark => bookmark.id === cardId
-    );
-
-}
-
-
-getBookmarks() {
-    return this.state.bookmarks;
-}
-
-
-/*
-========================================================
-WEAK CARDS
-========================================================
-*/
-
-async addWeakCard(card) {
-
-    if (!card || !card.id) return false;
-
-    const exists = this.isWeakCard(card.id);
-
-    if (exists) return true;
-
-    this.state.weakCards.push({
-        id: card.id,
-        subject: card.subject || 'General',
-        chapter: card.chapter || 'General',
-        question: card.question || '',
-        createdAt: Date.now(),
-        repetitions: 0
-    });
-
-    this.state.analytics.totalWeak =
-        this.state.weakCards.length;
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-async removeWeakCard(cardId) {
-
-    this.state.weakCards = this.state.weakCards.filter(
-        card => card.id !== cardId
-    );
-
-    this.state.analytics.totalWeak =
-        this.state.weakCards.length;
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-async toggleWeakCard(card) {
-
-    if (this.isWeakCard(card.id)) {
-        return await this.removeWeakCard(card.id);
-    }
-
-    return await this.addWeakCard(card);
-
-}
-
-
-isWeakCard(cardId) {
-
-    return this.state.weakCards.some(
-        card => card.id === cardId
-    );
-
-}
-
-
-getWeakCards() {
-    return this.state.weakCards;
-}
-
-
-/*
-========================================================
-FAVORITES
-========================================================
-*/
-
-async addFavorite(card) {
-
-    if (!card || !card.id) return false;
-
-    if (this.isFavorite(card.id)) return true;
-
-    this.state.favorites.push({
-        id: card.id,
-        subject: card.subject || 'General',
-        chapter: card.chapter || 'General',
-        createdAt: Date.now()
-    });
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-async removeFavorite(cardId) {
-
-    this.state.favorites = this.state.favorites.filter(
-        favorite => favorite.id !== cardId
-    );
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-isFavorite(cardId) {
-
-    return this.state.favorites.some(
-        favorite => favorite.id === cardId
-    );
-
-}
-
-
-/*
-========================================================
-RECENTLY VIEWED
-========================================================
-*/
-
-async addRecentCard(card) {
-
-    if (!card || !card.id) return false;
-
-    this.state.recentCards = this.state.recentCards.filter(
-        item => item.id !== card.id
-    );
-
-    this.state.recentCards.unshift({
-        id: card.id,
-        question: card.question || '',
-        viewedAt: Date.now()
-    });
-
-    this.state.recentCards =
-        this.state.recentCards.slice(
-            0,
-            this.options.maxRecentCards
-        );
-
-    this.state.analytics.totalViewed++;
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-getRecentCards(limit = 50) {
-
-    return this.state.recentCards.slice(0, limit);
-
-}
-
-
-/*
-========================================================
-NOTES
-========================================================
-*/
-
-async saveNote(cardId, note) {
-
-    this.state.notes[cardId] = {
-        note,
-        updatedAt: Date.now()
     };
 
-    await this.autoSave();
 
-    return true;
+    /*
+    ========================================================
+    RESET
+    ========================================================
+    */
 
-}
+    BookmarkEngine.prototype.reset =
+        function () {
 
-
-getNote(cardId) {
-
-    return this.state.notes[cardId] || null;
-
-}
-
-
-async removeNote(cardId) {
-
-    delete this.state.notes[cardId];
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-/*
-========================================================
-STUDY SESSIONS
-========================================================
-*/
-
-async startSession() {
-
-    this.currentSession = {
-        id: Date.now(),
-        startedAt: Date.now(),
-        cardsViewed: 0,
-        cardsBookmarked: 0,
-        weakCardsMarked: 0
-    };
-
-    return this.currentSession;
-
-}
-
-
-async endSession() {
-
-    if (!this.currentSession) return null;
-
-    this.currentSession.endedAt = Date.now();
-
-    this.currentSession.duration =
-        this.currentSession.endedAt -
-        this.currentSession.startedAt;
-
-    this.state.studySessions.unshift(
-        this.currentSession
-    );
-
-    this.state.analytics.totalStudyTime +=
-        this.currentSession.duration;
-
-    await this.autoSave();
-
-    return this.currentSession;
-
-}
-
-
-getSessions(limit = 50) {
-
-    return this.state.studySessions.slice(0, limit);
-
-}
-
-
-/*
-========================================================
-REVISION QUEUE
-========================================================
-*/
-
-async addToRevisionQueue(card) {
-
-    if (!card || !card.id) return false;
-
-    const exists = this.state.revisionQueue.some(
-        item => item.id === card.id
-    );
-
-    if (exists) return true;
-
-    this.state.revisionQueue.push({
-        id: card.id,
-        addedAt: Date.now(),
-        nextRevision: Date.now(),
-        interval: 1,
-        easeFactor: 2.5
-    });
-
-    await this.autoSave();
-
-    return true;
-
-}
-
-
-getRevisionQueue() {
-
-    const now = Date.now();
-
-    return this.state.revisionQueue.filter(item => {
-        return item.nextRevision <= now;
-    });
-
-}
-
-
-/*
-========================================================
-SUBJECT FILTERS
-========================================================
-*/
-
-getBookmarksBySubject(subject) {
-
-    return this.state.bookmarks.filter(bookmark => {
-        return bookmark.subject === subject;
-    });
-
-}
-
-
-getWeakCardsBySubject(subject) {
-
-    return this.state.weakCards.filter(card => {
-        return card.subject === subject;
-    });
-
-}
-
-
-/*
-========================================================
-SEARCH BOOKMARKS
-========================================================
-*/
-
-searchBookmarks(query = '') {
-
-    query = query.toLowerCase().trim();
-
-    return this.state.bookmarks.filter(bookmark => {
-
-        return (
-            bookmark.question
-                .toLowerCase()
-                .includes(query) ||
-            bookmark.subject
-                .toLowerCase()
-                .includes(query) ||
-            bookmark.chapter
-                .toLowerCase()
-                .includes(query)
-        );
-
-    });
-
-}
-
-
-/*
-========================================================
-ANALYTICS
-========================================================
-*/
-
-getAnalytics() {
-
-    return {
-        ...this.state.analytics,
-
-        totalFavorites:
-            this.state.favorites.length,
-
-        totalRecent:
-            this.state.recentCards.length,
-
-        totalNotes:
-            Object.keys(this.state.notes).length,
-
-        totalSessions:
-            this.state.studySessions.length,
-
-        revisionQueue:
-            this.state.revisionQueue.length
-    };
-
-}
-
-
-/*
-========================================================
-EXPORT STATE
-========================================================
-*/
-
-exportState() {
-
-    return JSON.stringify(this.state, null, 2);
-
-}
-
-
-/*
-========================================================
-IMPORT STATE
-========================================================
-*/
-
-async importState(json) {
-
-    try {
-
-        const parsed = JSON.parse(json);
-
-        this.state = parsed;
-
-        await this.saveState();
-
-        return true;
-
-    } catch (error) {
-
-        console.error(error);
-        return false;
-
-    }
-
-}
-
-
-/*
-========================================================
-CLEAR ALL
-========================================================
-*/
-
-async clearAll() {
-
-    this.state = {
-
-        bookmarks: [],
-        weakCards: [],
-        favorites: [],
-        hiddenCards: [],
-
-        recentCards: [],
-        viewedCards: [],
-
-        notes: {},
-
-        studySessions: [],
-
-        revisionQueue: [],
-
-        analytics: {
-            totalViewed: 0,
-            totalBookmarks: 0,
-            totalWeak: 0,
-            totalStudyTime: 0,
-            streak: 0
-        }
+        this.bookmarks = [];
 
     };
 
-    await this.saveState();
 
-    return true;
+    /*
+    ========================================================
+    EXPORT
+    ========================================================
+    */
 
-}
+    window.BookmarkEngine =
+        BookmarkEngine;
 
-
-/*
-========================================================
-AUTO SAVE
-========================================================
-*/
-
-async autoSave() {
-
-    if (this.options.autoSave) {
-        await this.saveState();
-    }
-
-}
-
-}
-
-/*
-
-GLOBAL EXPORT
-
-*/
-
-window.BookmarkEngine = BookmarkEngine;
-
-/*
-
-USAGE EXAMPLE
-
-const bookmarkEngine = new BookmarkEngine();
-
-await bookmarkEngine.init();
-
-await bookmarkEngine.addBookmark(card);
-
-const bookmarks = bookmarkEngine.getBookmarks();
-
-console.log(bookmarks);
-
-======================================================== */
+})();
